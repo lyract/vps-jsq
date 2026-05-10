@@ -36,6 +36,7 @@ const els = {
     symbolDisplay: document.querySelector('.symbol-display'),
     finalValue: document.getElementById('finalValue'),
     originalCurrencyValue: document.getElementById('originalCurrencyValue'),
+    amountCopyTip: document.getElementById('amountCopyTip'),
     premiumInput: document.getElementById('premiumInput'),
     salePriceInput: document.getElementById('salePriceInput'),
     daysRemaining: document.getElementById('daysRemaining'),
@@ -93,6 +94,12 @@ function setupEventListeners() {
 
     els.refreshBtn.addEventListener('click', manualRefreshRate); 
     els.themeToggle.addEventListener('click', toggleTheme);
+    els.finalValue.addEventListener('click', copyFinalValueAmount);
+    els.finalValue.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' && e.key !== ' ') return;
+        e.preventDefault();
+        copyFinalValueAmount();
+    });
 
     [els.premiumInput, els.salePriceInput].forEach(el => {
         el.addEventListener('input', () => {
@@ -175,9 +182,7 @@ function validateNumberInput(el) {
 }
 
 function initQuoteFields() {
-    if (!els.premiumInput.value && !els.salePriceInput.value) {
-        els.premiumInput.value = '0.00';
-    }
+    updateQuotePlaceholders();
     syncQuoteFields();
 }
 
@@ -206,12 +211,20 @@ function updateSaleTone(isNeutral) {
     els.salePriceInput.classList.toggle('sale-neutral', isNeutral);
 }
 
+function updateQuotePlaceholders() {
+    els.premiumInput.placeholder = '0.00';
+    els.salePriceInput.placeholder = formatMoney(remainingValueCNY) || '0.00';
+}
+
 function syncQuoteFields(options = {}) {
     const { formatActive = false } = options;
     const premiumRaw = els.premiumInput.value.trim();
+    const saleRaw = els.salePriceInput.value.trim();
+
+    updateQuotePlaceholders();
 
     if (quoteLastEdited === 'sale') {
-        const salePrice = parseQuoteValue(els.salePriceInput.value);
+        const salePrice = parseQuoteValue(saleRaw);
 
         if (Number.isFinite(salePrice)) {
             const premium = salePrice - remainingValueCNY;
@@ -230,6 +243,13 @@ function syncQuoteFields(options = {}) {
     const premium = premiumRaw === '' ? 0 : parseQuoteValue(els.premiumInput.value);
 
     if (Number.isFinite(premium)) {
+        if (premiumRaw === '') {
+            els.salePriceInput.value = '';
+            updatePremiumTone(0);
+            updateSaleTone(true);
+            return;
+        }
+
         const salePrice = remainingValueCNY + premium;
         els.salePriceInput.value = formatMoney(salePrice);
         if (formatActive) els.premiumInput.value = formatMoney(premium);
@@ -446,6 +466,16 @@ function prepareNumberInputsForExport(node) {
     };
 }
 
+function prepareQuoteSectionForExport(mainCard) {
+    const premium = parseQuoteValue(els.premiumInput.value);
+    const shouldHideQuote = !Number.isFinite(premium) || premium === 0;
+    mainCard.classList.toggle('quote-export-empty', shouldHideQuote);
+
+    return () => {
+        mainCard.classList.remove('quote-export-empty');
+    };
+}
+
 function prepareSelectInputsForExport(node) {
     const restoreTasks = [];
     const selects = node.querySelectorAll('select');
@@ -499,9 +529,14 @@ function loadInputsFromCookie() {
             if(data.currency) els.currency.value = data.currency;
             if(data.dueDate) els.dueDate.value = data.dueDate;
             if(data.customRate) els.customRate.value = data.customRate;
-            if(data.premium) els.premiumInput.value = data.premium;
-            if(data.salePrice) els.salePriceInput.value = data.salePrice;
-            if(data.quoteLastEdited === 'sale' || data.quoteLastEdited === 'premium') quoteLastEdited = data.quoteLastEdited;
+            if(data.quoteLastEdited === 'sale' || data.quoteLastEdited === 'premium') {
+                quoteLastEdited = data.quoteLastEdited;
+                if (quoteLastEdited === 'sale' && data.salePrice) {
+                    els.salePriceInput.value = data.salePrice;
+                } else if (quoteLastEdited === 'premium' && data.premium && parseFloat(data.premium) !== 0) {
+                    els.premiumInput.value = data.premium;
+                }
+            }
             if(data.cycle) {
                 const radio = document.querySelector(`input[name="cycle"][value="${data.cycle}"]`);
                 if(radio) radio.checked = true;
@@ -767,9 +802,13 @@ function copyResult() {
 - 💎 剩余价值：${valCNY}元（约 ${valOrig} ${currency}）
 - 🧾 溢价 / 售价：${premium}元 / ${salePrice}元`;
 
+    copyTextToClipboard(md, flashCopyButton);
+}
+
+function copyTextToClipboard(text, done) {
     const fallbackCopy = () => {
         const textArea = document.createElement("textarea");
-        textArea.value = md;
+        textArea.value = text;
         textArea.setAttribute('readonly', '');
         textArea.style.position = 'fixed';
         textArea.style.opacity = '0';
@@ -779,16 +818,27 @@ function copyResult() {
         document.body.removeChild(textArea);
     };
 
-    const done = () => {
-        flashCopyButton();
-    };
-
     if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(md).then(done).catch(() => { fallbackCopy(); done(); });
+        navigator.clipboard.writeText(text).then(done).catch(() => { fallbackCopy(); done(); });
     } else {
         fallbackCopy();
         done();
     }
+}
+
+function copyFinalValueAmount() {
+    const amount = els.finalValue.textContent.trim();
+    if (!amount) return;
+    copyTextToClipboard(amount, flashAmountCopyTip);
+}
+
+function flashAmountCopyTip() {
+    if (!els.amountCopyTip) return;
+    els.amountCopyTip.classList.add('show');
+    clearTimeout(flashAmountCopyTip._t);
+    flashAmountCopyTip._t = setTimeout(() => {
+        els.amountCopyTip.classList.remove('show');
+    }, 1500);
 }
 
 function flashCopyButton() {
@@ -844,6 +894,7 @@ async function generateImage() {
         const mainCard = document.getElementById('mainCard');
         node.classList.add('exporting');
         mainCard.classList.add('exporting');
+        const restoreQuoteSection = prepareQuoteSectionForExport(mainCard);
         const restoreDateInputs = prepareDateInputsForExport(mainCard);
         const restoreNumberInputs = prepareNumberInputsForExport(mainCard);
         const restoreSelectInputs = prepareSelectInputsForExport(mainCard);
@@ -882,6 +933,7 @@ async function generateImage() {
             restoreSelectInputs();
             restoreNumberInputs();
             restoreDateInputs();
+            restoreQuoteSection();
             mainCard.classList.remove('exporting');
             node.classList.remove('exporting');
         }
