@@ -13,7 +13,12 @@ const MANUAL_REFRESH_LIMIT = 2;
 const EXPORT_BORDER_RADIUS = 12;
 const SHARE_IMAGE_MIME_TYPE = 'image/webp';
 const SHARE_IMAGE_QUALITY = 0.98;
-const SHARE_IMAGE_PIXEL_RATIO = 2;
+// 导出图片的最低像素比与目标物理宽度。手机端 CSS 宽度通常仅 ~360px，
+// 若固定 pixelRatio=2 输出仅 ~720px 会发糊。这里按卡片实际 CSS 宽度动态
+// 计算 pixelRatio，保证输出至少 SHARE_IMAGE_MIN_WIDTH 物理像素宽。
+const SHARE_IMAGE_MIN_PIXEL_RATIO = 2;
+const SHARE_IMAGE_MAX_PIXEL_RATIO = 4;
+const SHARE_IMAGE_MIN_WIDTH = 1440;
 let htmlToImageModulePromise = null;
 let generatedImageUrl = '';
 
@@ -920,7 +925,12 @@ async function generateImage() {
         try {
             const htmlToImage = await getHtmlToImage();
             const rect = node.getBoundingClientRect();
-            const pixelRatio = SHARE_IMAGE_PIXEL_RATIO;
+            const cssWidth = Math.max(1, Math.ceil(rect.width));
+            const widthBasedRatio = SHARE_IMAGE_MIN_WIDTH / cssWidth;
+            const pixelRatio = Math.min(
+                SHARE_IMAGE_MAX_PIXEL_RATIO,
+                Math.max(SHARE_IMAGE_MIN_PIXEL_RATIO, widthBasedRatio)
+            );
             const canvas = await htmlToImage.toCanvas(node, {
                 width: Math.ceil(rect.width),
                 height: Math.ceil(rect.height),
