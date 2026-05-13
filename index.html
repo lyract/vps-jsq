@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VPS 剩余价值</title>
+    <link rel="preconnect" href="https://open.er-api.com" crossorigin>
+    <link rel="dns-prefetch" href="https://open.er-api.com">
     <script>
         (() => {
             try {
@@ -157,12 +159,12 @@
                             付款周期
                         </legend>
                         <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5 md:gap-3">
-                            <label class="cursor-pointer relative"><input type="radio" name="cycle" value="30" class="cycle-radio sr-only"><div class="py-1.5 md:py-2.5 text-center rounded text-xs md:text-sm transition-all border bg-white border-slate-200 text-slate-500 hover:bg-slate-100 dark:bg-[#1d1d22] dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:border-zinc-500">月付</div></label>
-                            <label class="cursor-pointer relative"><input type="radio" name="cycle" value="90" class="cycle-radio sr-only"><div class="py-1.5 md:py-2.5 text-center rounded text-xs md:text-sm transition-all border bg-white border-slate-200 text-slate-500 hover:bg-slate-100 dark:bg-[#1d1d22] dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:border-zinc-500">季付</div></label>
-                            <label class="cursor-pointer relative"><input type="radio" name="cycle" value="180" class="cycle-radio sr-only"><div class="py-1.5 md:py-2.5 text-center rounded text-xs md:text-sm transition-all border bg-white border-slate-200 text-slate-500 hover:bg-slate-100 dark:bg-[#1d1d22] dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:border-zinc-500">半年</div></label>
-                            <label class="cursor-pointer relative"><input type="radio" name="cycle" value="365" class="cycle-radio sr-only" checked><div class="py-1.5 md:py-2.5 text-center rounded text-xs md:text-sm transition-all border bg-white border-slate-200 text-slate-500 hover:bg-slate-100 dark:bg-[#1d1d22] dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:border-zinc-500">年付</div></label>
-                            <label class="cursor-pointer relative"><input type="radio" name="cycle" value="730" class="cycle-radio sr-only"><div class="py-1.5 md:py-2.5 text-center rounded text-xs md:text-sm transition-all border bg-white border-slate-200 text-slate-500 hover:bg-slate-100 dark:bg-[#1d1d22] dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:border-zinc-500">两年</div></label>
-                            <label class="cursor-pointer relative"><input type="radio" name="cycle" value="1095" class="cycle-radio sr-only"><div class="py-1.5 md:py-2.5 text-center rounded text-xs md:text-sm transition-all border bg-white border-slate-200 text-slate-500 hover:bg-slate-100 dark:bg-[#1d1d22] dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:border-zinc-500">三年</div></label>
+                            <label class="cursor-pointer relative"><input type="radio" name="cycle" value="30" class="cycle-radio sr-only"><div class="cycle-option">月付</div></label>
+                            <label class="cursor-pointer relative"><input type="radio" name="cycle" value="90" class="cycle-radio sr-only"><div class="cycle-option">季付</div></label>
+                            <label class="cursor-pointer relative"><input type="radio" name="cycle" value="180" class="cycle-radio sr-only"><div class="cycle-option">半年</div></label>
+                            <label class="cursor-pointer relative"><input type="radio" name="cycle" value="365" class="cycle-radio sr-only" checked><div class="cycle-option">年付</div></label>
+                            <label class="cursor-pointer relative"><input type="radio" name="cycle" value="730" class="cycle-radio sr-only"><div class="cycle-option">两年</div></label>
+                            <label class="cursor-pointer relative"><input type="radio" name="cycle" value="1095" class="cycle-radio sr-only"><div class="cycle-option">三年</div></label>
                         </div>
                     </fieldset>
 
@@ -329,7 +331,7 @@
         </div>
 
         <div id="footerWrap" class="mt-2 text-center">
-            <span class="text-[10px] md:text-[13px] text-slate-400 dark:text-zinc-600 font-medium tabular-nums transition-colors"><a href="https://github.com/verkyer/vps-jsq" target="_blank" class="hover:text-amber-500 transition-colors">VPS-JSQ</a> v1.3.7 / <a href="https://www.xiaoge.org/" target="_blank" class="hover:text-amber-500 transition-colors">@XiaoGe</a>.</span>
+            <span class="text-[10px] md:text-[13px] text-slate-400 dark:text-zinc-600 font-medium tabular-nums transition-colors"><a href="https://github.com/verkyer/vps-jsq" target="_blank" class="hover:text-amber-500 transition-colors">VPS-JSQ</a> v1.3.8 / <a href="https://www.xiaoge.org/" target="_blank" class="hover:text-amber-500 transition-colors">@XiaoGe</a>.</span>
         </div>
 
     </main>

@@ -299,6 +299,11 @@ html:not(.dark) #mainCard {
 }
 
 /* Cycle Radio Button Styling */
+/* 6 个付款周期按钮共用：抽出长串 Tailwind 工具类，瘦身 HTML */
+.cycle-option {
+    @apply py-1.5 md:py-2.5 text-center rounded text-xs md:text-sm transition-all border bg-white border-slate-200 text-slate-500 hover:bg-slate-100 dark:bg-[#1d1d22] dark:border-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-700 dark:hover:border-zinc-500;
+}
+
 .cycle-radio + div {
     position: relative;
     box-sizing: border-box;

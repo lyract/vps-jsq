@@ -18,6 +18,9 @@ const SHARE_IMAGE_QUALITY = 0.98;
 // 计算 pixelRatio，保证输出至少 SHARE_IMAGE_MIN_WIDTH 物理像素宽。
 const SHARE_IMAGE_MIN_PIXEL_RATIO = 2;
 const SHARE_IMAGE_MAX_PIXEL_RATIO = 4;
+// 低内存设备（deviceMemory <= 4GB 或窄屏）限制 pixelRatio，避免导出时内存峰值过高造成卡顿
+// 股眼几乎看不出 3x 与 4x 的区别
+const SHARE_IMAGE_LOW_END_MAX_PIXEL_RATIO = 3;
 const SHARE_IMAGE_MIN_WIDTH = 1440;
 let htmlToImageModulePromise = null;
 let generatedImageUrl = '';
@@ -927,8 +930,16 @@ async function generateImage() {
             const rect = node.getBoundingClientRect();
             const cssWidth = Math.max(1, Math.ceil(rect.width));
             const widthBasedRatio = SHARE_IMAGE_MIN_WIDTH / cssWidth;
+            const isLowEndDevice = (typeof navigator !== 'undefined'
+                && typeof navigator.deviceMemory === 'number'
+                && navigator.deviceMemory > 0
+                && navigator.deviceMemory <= 4)
+                || (typeof window !== 'undefined' && window.innerWidth < 400);
+            const maxRatio = isLowEndDevice
+                ? SHARE_IMAGE_LOW_END_MAX_PIXEL_RATIO
+                : SHARE_IMAGE_MAX_PIXEL_RATIO;
             const pixelRatio = Math.min(
-                SHARE_IMAGE_MAX_PIXEL_RATIO,
+                maxRatio,
                 Math.max(SHARE_IMAGE_MIN_PIXEL_RATIO, widthBasedRatio)
             );
             const canvas = await htmlToImage.toCanvas(node, {
@@ -978,6 +989,18 @@ function bindActionButtons() {
     for (const [id, fn] of map) {
         const el = document.getElementById(id);
         if (el) el.addEventListener('click', fn);
+    }
+
+    // 鼠标悬停 / 键盘聚焦时预热 html-to-image，点击瞬间减少等待。仅触发一次。
+    const imgBtn = document.getElementById('imgBtn');
+    if (imgBtn) {
+        const prefetch = () => {
+            imgBtn.removeEventListener('pointerenter', prefetch);
+            imgBtn.removeEventListener('focus', prefetch);
+            try { getHtmlToImage(); } catch (_) {}
+        };
+        imgBtn.addEventListener('pointerenter', prefetch, { once: true });
+        imgBtn.addEventListener('focus', prefetch, { once: true });
     }
 }
 
