@@ -10,7 +10,6 @@ const API_URL = 'https://open.er-api.com/v6/latest/CNY';
 const RATE_CACHE_HOURS = 12;
 // 用户手动刷新汇率次数上限（每 RATE_CACHE_HOURS 内）。防止误触刷爆免费 API 配额。
 const MANUAL_REFRESH_LIMIT = 2;
-const EXPORT_BORDER_RADIUS = 12;
 const SHARE_IMAGE_MIME_TYPE = 'image/webp';
 const SHARE_IMAGE_QUALITY = 0.98;
 // 导出图片的最低像素比与目标物理宽度。手机端 CSS 宽度通常仅 ~360px，
@@ -372,36 +371,6 @@ function canvasToBlob(canvas, type, quality) {
             }
         }, type, quality);
     });
-}
-
-function buildRoundedRectPath(ctx, width, height, radius) {
-    const safeRadius = Math.max(0, Math.min(radius, width / 2, height / 2));
-    ctx.beginPath();
-    ctx.moveTo(safeRadius, 0);
-    ctx.lineTo(width - safeRadius, 0);
-    ctx.quadraticCurveTo(width, 0, width, safeRadius);
-    ctx.lineTo(width, height - safeRadius);
-    ctx.quadraticCurveTo(width, height, width - safeRadius, height);
-    ctx.lineTo(safeRadius, height);
-    ctx.quadraticCurveTo(0, height, 0, height - safeRadius);
-    ctx.lineTo(0, safeRadius);
-    ctx.quadraticCurveTo(0, 0, safeRadius, 0);
-    ctx.closePath();
-}
-
-function clipCanvasToRoundedRect(sourceCanvas, radiusPx) {
-    const outputCanvas = document.createElement('canvas');
-    outputCanvas.width = sourceCanvas.width;
-    outputCanvas.height = sourceCanvas.height;
-
-    const ctx = outputCanvas.getContext('2d');
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
-    buildRoundedRectPath(ctx, outputCanvas.width, outputCanvas.height, radiusPx);
-    ctx.clip();
-    ctx.drawImage(sourceCanvas, 0, 0);
-
-    return outputCanvas;
 }
 
 function resetGeneratedImage() {
@@ -954,8 +923,7 @@ async function generateImage() {
                     transform: 'scale(1)',
                 }
             });
-            const roundedCanvas = clipCanvasToRoundedRect(canvas, EXPORT_BORDER_RADIUS * pixelRatio);
-            const blob = await canvasToBlob(roundedCanvas, SHARE_IMAGE_MIME_TYPE, SHARE_IMAGE_QUALITY);
+            const blob = await canvasToBlob(canvas, SHARE_IMAGE_MIME_TYPE, SHARE_IMAGE_QUALITY);
             resetGeneratedImage();
             generatedImageUrl = URL.createObjectURL(blob);
 
